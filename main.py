@@ -7,29 +7,25 @@ from keras.layers import LSTM
 from keras.layers import Conv1D
 from keras.optimizers import RMSprop
 from keras.utils import plot_model
+from keras.callbacks import TensorBoard
 from source.textreaders import mapcount, loadData, readTxt
 
-# define load wordlist as csv
-
-
-
-
-
 # import csv
-[inputs_train, outputs_train, inputs_test, outputs_test] = loadData('data_input/words.csv')
+[temp, temp, inputs_test, outputs_test] = loadData('data_input/words.csv')
 
-[inputs_ger, outputs_ger] = readTxt('data_input/deutsch.txt',1)
+[inputs_ger, outputs_ger] = readTxt('data_input/deutsch.txt', 1)
+[inputs_eng, outputs_eng] = readTxt('data_input/english.txt', 0)
 
+inputs_train = np.concatenate((inputs_ger, inputs_eng), axis=0)
+outputs_train = kr.utils.to_categorical(np.concatenate((outputs_ger, outputs_eng), axis=0))
 
 
 # build the model:
 print('Build model...')
 model = Sequential()
-model.add(Dense(50, input_shape=(16,)))
-kr.layers.LSTMCell(16, activation='tanh', recurrent_activation='hard_sigmoid', use_bias=True, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', unit_forget_bias=True,
-                   kernel_regularizer=None, recurrent_regularizer=None, bias_regularizer=None, kernel_constraint=None, recurrent_constraint=None, bias_constraint=None, dropout=0.0, recurrent_dropout=0.0, implementation=1)
+model.add(Dense(100, input_shape=(16,)))
 model.add(Dense(100, activation='relu'))
-model.add(Dense(10, activation='relu'))
+model.add(Dense(100, activation='relu'))
 model.add(Dense(2))
 model.add(Activation('softmax'))
 
@@ -44,7 +40,16 @@ model.compile(optimizer=optimizer, loss="categorical_crossentropy", metrics=["ac
 plot_model(model, to_file='data_output/model.png', show_shapes=True)
 
 # Fit the model using our training data.
-model.fit(inputs_train, outputs_train, epochs=10000, batch_size=1000, verbose=1)
+tbCallback=TensorBoard(
+    log_dir='output/',
+    histogram_freq=0,
+    write_graph=True,
+    write_images=False,
+    embeddings_freq=0,
+    embeddings_layer_names=None, # this list of embedding layers...
+    embeddings_metadata=None)      # with this metadata associated with them.)
+model.fit(inputs_train, outputs_train,callbacks=[tbCallback], epochs=10000, batch_size=1000, verbose=1)
+
 loss, accuracy = model.evaluate(inputs_test, outputs_test, verbose=1)
 
 # Output the accuracy of the model.

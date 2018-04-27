@@ -4,7 +4,7 @@ import time as time
 import mmap
 import csv
 import keras as kr
-
+import os
 
 
 
@@ -21,11 +21,13 @@ def mapcount(filename): #returns the number of lines in a txt file
 
 
 def readTxt(filename,cls):
+    input_file = open(filename)
     input_file.readline()  # skip first line
     N = mapcount(filename)  # lines in foo.txt
-    inputs = np.zeros((N, 16))
-    outputs = np.ones((len(words)-1, 1))*cls
-    outputs = kr.utils.to_categorical(outputs)
+
+    inputs = np.zeros((N, 16)) # initialise empty np array
+
+    outputs = np.ones((N, 1))*cls
 
     N = 7
     print N
